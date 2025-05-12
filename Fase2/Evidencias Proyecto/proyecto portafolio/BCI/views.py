@@ -1,11 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import pandas as pd
-import json
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+
+
 
 def login(request):
     context = {}
     return render(request, 'finantrack/login.html', context)
+
 
 def categorizar(descripcion):
     descripcion = descripcion.lower()
@@ -35,7 +39,7 @@ def index(request):
         archivo = request.FILES['archivo']
         try:
             if archivo.name.endswith('.xlsx'):
-                preview = pd.read_excel(archivo, engine='openpyxl', nrows=1, header=None)
+                preview = pd.read_excel(archivo, engine='openpyxl', nrows=1, header=None) # Elimina separadores de miles
                 if str(preview.iloc[0, 0]).strip().lower() == "fecha":
                     df = pd.read_excel(archivo, engine='openpyxl', skiprows=0, dtype=str)
                     print("Archivo detectado: Falabella")
@@ -85,7 +89,7 @@ def index(request):
                         .str.replace(',', '.', regex=False)   # Cambia coma decimal por punto
                         .str.replace(r'\s+', '', regex=True) 
                         .str.replace(r'[^\w\s]', '', regex=True) # Elimina espacios en blanco
-                        .replace('', '0')                     # Vacíos a cero
+                        .replace('nan', '0')                     # Vacíos a cero
                         .astype(float)                        # Convierte a float
                 )
 
@@ -118,3 +122,18 @@ def index(request):
             messages.error(request, f'Ocurrió un error al procesar el archivo: {str(e)}')
 
     return render(request, 'finantrack/index.html', context)
+
+
+
+
+
+def registro_usuario(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            usuario = form.save()
+            login(request, usuario)  # Inicia sesión automáticamente
+            return redirect('perfil_usuario')  # Redirige al perfil
+    else:
+        form = UserCreationForm()
+    return render(request, 'finantrack/registro.html', {'form': form})
