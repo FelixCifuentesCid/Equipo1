@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión</title>
+    <link rel="stylesheet" href="{% static 'finantrack/css/style.css' %}">
+</head>
+<body>
+    <h2>Iniciar Sesión</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Ingresar</button>
+    </form>
+
+    <p>¿No tienes una cuenta? <a href="{% url 'registro' %}">Regístrate aquí</a></p>
+</body>
+</html>
